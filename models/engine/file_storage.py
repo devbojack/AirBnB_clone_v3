@@ -53,14 +53,19 @@ class FileStorage:
             json.dump(json_objects, f)
 
     def reload(self):
-        """deserializes the JSON file to __objects"""
+        """Deserializes the JSON file to __objects"""
         try:
             with open(self.__file_path, 'r') as f:
                 jo = json.load(f)
-            for key in jo:
-                self.__objects[key] = classes[jo[key]["__class__"]](**jo[key])
-        except:
-            pass
+            for key, value in jo.items():
+                class_name = value.get("__class__")
+                if class_name and class_name in classes:
+                    obj = classes[class_name](**value)
+                    self.__objects[key] = obj
+        except FileNotFoundError:
+            return  # File not found, no need to raise an error
+        except Exception as e:
+            print("Error while reloading:", e)
 
     def delete(self, obj=None):
         """delete obj from __objects if it’s inside"""
